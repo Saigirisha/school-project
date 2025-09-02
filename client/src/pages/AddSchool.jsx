@@ -14,12 +14,10 @@ const AddSchool = () => {
     formData.append("state", data.state);
     formData.append("contact", data.contact);
     formData.append("email_id", data.email_id);
-    if (data.image && data.image.length > 0) {
-      formData.append("image", data.image[0]);
-    }
+    if (data.image && data.image.length > 0) formData.append("image", data.image[0]);
 
     try {
-      await axios.post("http://localhost:5000/addSchool", formData, {
+      await axios.post("http://localhost:5000/api/addSchool", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       alert("School added successfully!");
@@ -34,23 +32,23 @@ const AddSchool = () => {
     <div className="form-page">
       <h2>Add School</h2>
       <form className="school-form" onSubmit={handleSubmit(onSubmit)}>
-        <input type="text"{...register("name", { required: true })} placeholder="School Name" />
+        <input type="text" {...register("name", { required: true })} placeholder="School Name" />
         {errors.name && <span>Name is required</span>}
 
-        <input type="text"{...register("address", { required: true })} placeholder="Address" />
+        <input type="text" {...register("address", { required: true })} placeholder="Address" />
         {errors.address && <span>Address is required</span>}
 
-        <input type="text"{...register("city", { required: true })} placeholder="City" />
+        <input type="text" {...register("city", { required: true })} placeholder="City" />
         {errors.city && <span>City is required</span>}
 
-        <input type="text"{...register("state", { required: true })} placeholder="State" />
+        <input type="text" {...register("state", { required: true })} placeholder="State" />
         {errors.state && <span>State is required</span>}
 
         <input type="number" {...register("contact", { required: true })} placeholder="Contact" />
         {errors.contact && <span>Contact is required</span>}
 
         <input type="email" {...register("email_id", { required: true })} placeholder="Email" />
-        {errors.email_id && <span>Valid email is required</span>}
+        {errors.email_id && <span>Email is required</span>}
 
         <input type="file" {...register("image", { required: true })} />
         {errors.image && <span>Image is required</span>}

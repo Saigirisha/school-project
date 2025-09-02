@@ -1,3 +1,4 @@
+// server/index.js
 const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
@@ -11,22 +12,21 @@ app.use(express.json());
 
 // Create folder for images if it doesn't exist
 const imageDir = path.join(__dirname, "schoolImages");
-if (!fs.existsSync(imageDir)) {
-  fs.mkdirSync(imageDir);
-}
+if (!fs.existsSync(imageDir)) fs.mkdirSync(imageDir);
 app.use("/schoolImages", express.static(imageDir));
 
 // MySQL connection
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",          // your MySQL username
-  password: "Saigirisha@1234", // your MySQL password
-  database: "schoolsdb"
+  host: "shinkansen.proxy.rlwy.net",
+  user: "root",
+  password: "DnjvVjCIZzfTiMvSyYoUVZXoeGBQPaWZ",
+  database: "railway",
+  port: 17238
 });
 
 db.connect(err => {
   if (err) throw err;
-  console.log("MySQL connected");
+  console.log("Connected to Railway MySQL!");
 });
 
 // Multer setup for image upload
@@ -36,23 +36,42 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Add school API
-app.post("/addSchool", upload.single("image"), (req, res) => {
+// --- Add school API ---
+app.post("/api/addSchool", upload.single("image"), (req, res) => {
   const { name, address, city, state, contact, email_id } = req.body;
   const image = req.file ? req.file.filename : null;
-  const sql = "INSERT INTO schools (name, address, city, state, contact, image, email_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
-  db.query(sql, [name, address, city, state, contact, image, email_id], (err, result) => {
+  const contactNumber = BigInt(contact);
+
+  db.query("SELECT * FROM schools WHERE email_id = ?", [email_id], (err, results) => {
     if (err) return res.status(500).send(err);
-    res.send("School added successfully");
+    if (results.length > 0) return res.status(400).send("Email already exists");
+
+    const sql = "INSERT INTO schools (name, address, city, state, contact, image, email_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    db.query(sql, [name, address, city, state, contactNumber, image, email_id], (err) => {
+      if (err) return res.status(500).send(err);
+      res.send("School added successfully");
+    });
   });
 });
 
-// Get all schools API
-app.get("/getSchools", (req, res) => {
+// --- Get all schools API ---
+app.get("/api/getSchools", (req, res) => {
   db.query("SELECT * FROM schools", (err, results) => {
     if (err) return res.status(500).send(err);
     res.json(results);
   });
 });
 
-app.listen(5000, () => console.log("Server running on port 5000"));
+// --- Serve React frontend in production ---
+if (process.env.NODE_ENV === "production") {
+  const clientBuildPath = path.join(__dirname, "../client/build");
+  app.use(express.static(clientBuildPath));
+
+  app.get("/*", (req, res) => {
+    res.sendFile(path.join(clientBuildPath, "index.html"));
+  });
+}
+
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

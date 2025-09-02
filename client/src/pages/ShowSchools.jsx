@@ -6,7 +6,7 @@ function ShowSchools() {
   const [schools, setSchools] = useState([]);
 
   useEffect(() => {
-    axios.get("/api/getSchools")
+    axios.get(`${process.env.REACT_APP_API_URL}/api/getSchools`)
       .then(res => setSchools(res.data))
       .catch(err => console.error(err));
   }, []);
@@ -19,7 +19,7 @@ function ShowSchools() {
           <div className="school-card" key={index}>
             <div className="image-wrapper">
               {school.image ? (
-                <img src={`/schoolImages/${school.image}`} alt={school.name} />
+                <img src={`${process.env.REACT_APP_API_URL}/schoolImages/${school.image}`} alt={school.name} />
               ) : (
                 <div className="placeholder-img">No Image</div>
               )}
@@ -29,8 +29,8 @@ function ShowSchools() {
               <p><strong>Address:</strong> {school.address}</p>
               <p><strong>City:</strong> {school.city}</p>
               <p><strong>State:</strong> {school.state}</p>
-              <p><strong>Contact:</strong> {school.contact}</p>
-              <p><strong>Email:</strong> {school.email_id}</p>
+              {/* <p><strong>Contact:</strong> {school.contact}</p>
+              <p><strong>Email:</strong> {school.email_id}</p> */}
             </div>
           </div>
         ))}

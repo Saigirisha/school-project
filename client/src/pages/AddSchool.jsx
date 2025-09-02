@@ -17,7 +17,7 @@ const AddSchool = () => {
     if (data.image && data.image.length > 0) formData.append("image", data.image[0]);
 
     try {
-      await axios.post("/api/addSchool", formData, {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/addSchool`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       alert("School added successfully!");

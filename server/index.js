@@ -24,6 +24,7 @@ const db = mysql.createConnection({
   port: process.env.DB_PORT
 });
 
+
 db.connect(err => {
   if (err) throw err;
   console.log("Connected to Railway MySQL!");
@@ -66,7 +67,7 @@ app.get("/api/getSchools", (req, res) => {
 if (process.env.NODE_ENV === "production") {
   const clientBuildPath = path.join(__dirname, "../client/build");
   app.use(express.static(clientBuildPath));
-  app.get("/*", (req, res) => {
+  app.get("/", (req, res) => {
     res.sendFile(path.join(clientBuildPath, "index.html"));
   });
 }

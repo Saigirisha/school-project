@@ -1,41 +1,50 @@
+// server/index.js
+require("dotenv").config();
 const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-require("dotenv").config();
 
 const app = express();
-app.use(cors());
+
+// --- Middleware ---
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
-// Folder for images
+// --- Image folder ---
 const imageDir = path.join(__dirname, "schoolImages");
 if (!fs.existsSync(imageDir)) fs.mkdirSync(imageDir);
 app.use("/schoolImages", express.static(imageDir));
 
-// MySQL connection
+// --- MySQL connection ---
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT
+  port: process.env.DB_PORT,
 });
-
 
 db.connect(err => {
   if (err) throw err;
-  console.log("Connected to Railway MySQL!");
+  console.log("Connected to MySQL!");
 });
 
-// Multer setup
+// --- Multer setup ---
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "schoolImages"),
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + path.extname(file.originalname)),
 });
 const upload = multer({ storage });
+
+// --- API Routes ---
 
 // Add school
 app.post("/api/addSchool", upload.single("image"), (req, res) => {
@@ -47,7 +56,8 @@ app.post("/api/addSchool", upload.single("image"), (req, res) => {
     if (err) return res.status(500).send(err);
     if (results.length > 0) return res.status(400).send("Email already exists");
 
-    const sql = "INSERT INTO schools (name, address, city, state, contact, image, email_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    const sql =
+      "INSERT INTO schools (name, address, city, state, contact, image, email_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
     db.query(sql, [name, address, city, state, contactNumber, image, email_id], (err) => {
       if (err) return res.status(500).send(err);
       res.send("School added successfully");
@@ -67,10 +77,11 @@ app.get("/api/getSchools", (req, res) => {
 if (process.env.NODE_ENV === "production") {
   const clientBuildPath = path.join(__dirname, "../client/build");
   app.use(express.static(clientBuildPath));
-  app.get("/", (req, res) => {
+  app.get("/*", (req, res) => {
     res.sendFile(path.join(clientBuildPath, "index.html"));
   });
 }
 
+// --- Start server ---
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

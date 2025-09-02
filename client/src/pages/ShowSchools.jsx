@@ -29,8 +29,6 @@ function ShowSchools() {
               <p><strong>Address:</strong> {school.address}</p>
               <p><strong>City:</strong> {school.city}</p>
               <p><strong>State:</strong> {school.state}</p>
-              {/* <p><strong>Contact:</strong> {school.contact}</p>
-              <p><strong>Email:</strong> {school.email_id}</p> */}
             </div>
           </div>
         ))}

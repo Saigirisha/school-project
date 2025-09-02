@@ -1,27 +1,27 @@
-// server/index.js
 const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+require("dotenv").config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Create folder for images if it doesn't exist
+// Folder for images
 const imageDir = path.join(__dirname, "schoolImages");
 if (!fs.existsSync(imageDir)) fs.mkdirSync(imageDir);
 app.use("/schoolImages", express.static(imageDir));
 
 // MySQL connection
 const db = mysql.createConnection({
-  host: "shinkansen.proxy.rlwy.net",
-  user: "root",
-  password: "DnjvVjCIZzfTiMvSyYoUVZXoeGBQPaWZ",
-  database: "railway",
-  port: 17238
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT
 });
 
 db.connect(err => {
@@ -29,14 +29,14 @@ db.connect(err => {
   console.log("Connected to Railway MySQL!");
 });
 
-// Multer setup for image upload
+// Multer setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "schoolImages"),
   filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
 const upload = multer({ storage });
 
-// --- Add school API ---
+// Add school
 app.post("/api/addSchool", upload.single("image"), (req, res) => {
   const { name, address, city, state, contact, email_id } = req.body;
   const image = req.file ? req.file.filename : null;
@@ -54,7 +54,7 @@ app.post("/api/addSchool", upload.single("image"), (req, res) => {
   });
 });
 
-// --- Get all schools API ---
+// Get all schools
 app.get("/api/getSchools", (req, res) => {
   db.query("SELECT * FROM schools", (err, results) => {
     if (err) return res.status(500).send(err);
@@ -62,16 +62,14 @@ app.get("/api/getSchools", (req, res) => {
   });
 });
 
-// --- Serve React frontend in production ---
+// Serve React frontend in production
 if (process.env.NODE_ENV === "production") {
   const clientBuildPath = path.join(__dirname, "../client/build");
   app.use(express.static(clientBuildPath));
-
   app.get("/*", (req, res) => {
     res.sendFile(path.join(clientBuildPath, "index.html"));
   });
 }
 
-// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
